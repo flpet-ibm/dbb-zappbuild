@@ -690,10 +690,12 @@ def createBuildList() {
 		if (buildSet && changedFiles) {
 			println "** Perform analysis and reporting of external impacted files for the build list including changed files."
 			reportingUtils.reportExternalImpacts(buildSet.plus(changedFiles))
-		}
-		else if(buildSet) {
+		} else if(buildSet) {
 			println "** Perform analysis and reporting of external impacted files for the build list."
 			reportingUtils.reportExternalImpacts(buildSet)
+		} else if(changedFiles) {
+			println "** Perform analysis and reporting of external impacted files for changed files only (no files in the build list)."
+			reportingUtils.reportExternalImpacts(changedFiles)
 		}
 	}
 	
@@ -741,10 +743,12 @@ def finalizeBuildProcess(Map args) {
 				if (props.verbose) println "** Setting property $key : $currenthash"
 				buildResult.setProperty(key, currenthash)
 				// store gitUrl
-				String giturlkey = "$giturlPrefix${buildUtils.relativizePath(dir)}"
 				String url = gitUtils.getCurrentGitUrl(dir)
-				if (props.verbose) println "** Setting property $giturlkey : $url"
-				buildResult.setProperty(giturlkey, url)
+				if (url) {
+					String giturlkey = "$giturlPrefix${buildUtils.relativizePath(dir)}"
+					if (props.verbose) println "** Setting property $giturlkey : $url"
+					buildResult.setProperty(giturlkey, url)
+				}
 				// document changed files - Git compare link
 				if (props.impactBuild && props.gitRepositoryURL && props.gitRepositoryCompareService){
 					String gitchangedfilesKey = "$gitchangedfilesPrefix${buildUtils.relativizePath(dir)}"
