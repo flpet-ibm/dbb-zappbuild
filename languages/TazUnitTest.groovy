@@ -191,7 +191,7 @@ def createTazCommand(String buildFile, LogicalFile logicalFile, String member, F
 				cccOpts += optionParm + "\n";
 			}
 		} else {
-			jcl += '"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}" +'")' + "\n"
+			cccOpts += '"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}" +'")' + "\n"
 		}
 	} else if (props.debugzUnitTestcase && props.userBuild) {
 		cccOpts = debugParms
@@ -203,7 +203,6 @@ def createTazCommand(String buildFile, LogicalFile logicalFile, String member, F
 	
 	return tazCMD
 }
-
 /*
  * returns the LogicalDependency of the playbackfile
  */
