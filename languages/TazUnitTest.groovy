@@ -44,104 +44,32 @@ int currentBuildFileNumber = 1
 	// get playback dependency for bzucfg file from logicalFile
 	LogicalDependency playbackFile = getPlaybackFile(logicalFile);
 
-	// Create JCLExec String
-	String jobcard = props.getFileProperty('tazunittest_jobCard', buildFile).replace("\\n", "\n")
-	String jcl = jobcard
-	jcl += """\
-\n//*
-//BADRC   EXEC PGM=IEFBR14
-//DD        DD DSN=&SYSUID..BADRC,DISP=(MOD,CATLG,DELETE),
-//             DCB=(RECFM=FB,LRECL=80),UNIT=SYSALLDA,
-//             SPACE=(TRK,(1,1),RLSE)
-//*
-//* Action: Run Test Case...
-//RUNNER EXEC PROC=EQAPPLAY,
-// BZUCFG=${props.tazunittest_bzucfgPDS}(${member}),
-// BZUCBK=${props.cobol_testcase_loadPDS},
-// BZULOD=${props.cobol_loadPDS},
-"""
-	// Add parms for eqapplay proc / TAZ Runner
-	unitTestParms = props.getFileProperty('tazunittest_eqaplayParms', buildFile)
-	jcl += """\
-//  PARM=('$unitTestParms')
-"""
-	if (playbackFile != null) { // bzucfg contains reference to a playback file
-		jcl +=
-				"//REPLAY.BZUPLAY DD DISP=SHR, \n" +
-				"// DSN=${props.tazunittest_bzuplayPDS}(${playbackFile.getLname()}) \n"
-	} else { // no playbackfile referenced
-		jcl +=
-				"//REPLAY.BZUPLAY DD DUMMY   \n"
-	}
-
-	jcl += """\
-//REPLAY.BZURPT DD DISP=SHR,
-// DSN=${props.tazunittest_bzureportPDS}(${member})
-"""
-
-	// Add debugger parameters
-	debugParms = props.getFileProperty('tazunittest_userDebugSessionTestParm', buildFile)
-
-	// add code coverage collection if activated
-	if (props.codeZunitCoverage && props.codeZunitCoverage.toBoolean()) {
-		// codeCoverageHost
-		if (props.codeCoverageHeadlessHost != null)
-			codeCoverageHost = props.codeCoverageHeadlessHost
-		else
-			codeCoverageHost = props.getFileProperty('tazunittest_CodeCoverageHost', buildFile)
-		// codeCoveragePort
-		if (props.codeCoverageHeadlessPort != null)
-			codeCoveragePort = props.codeCoverageHeadlessPort
-		else
-			codeCoveragePort = props.getFileProperty('tazunittest_CodeCoveragePort', buildFile)
-		// codeCoverageOptions
-		if (props.codeCoverageOptions != null)
-			codeCoverageOptions = props.codeCoverageOptions
-		else
-			codeCoverageOptions = props.getFileProperty('tazunittest_CodeCoverageOptions', buildFile)
-
-		jcl +=
-				"//CEEOPTS DD *                        \n"   +
-				( ( codeCoverageHost != null && codeCoveragePort != null && !props.userBuild ) ? "TEST(,,,TCPIP&${codeCoverageHost}%${codeCoveragePort}:*)  \n" : "${debugParms}  \n" ) +
-				"ENVAR(\n"
-		if (codeCoverageOptions != null) {
-			optionsParms = splitCCParms('"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}," + codeCoverageOptions + '")');
-			optionsParms.each { optionParm ->
-				jcl += optionParm + "\n";
-			}
-		} else {
-			jcl += '"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}" +'")' + "\n"
-		}
-		jcl += "/* \n"
-	} else if (props.debugzUnitTestcase && props.userBuild) {
-		// initiate debug session of test case
-		jcl +=
-				"//CEEOPTS DD *                        \n"   +
-				"${debugParms}  \n"
-	}
-	jcl += """\
-//*
-//IFGOOD IF RC<=4 THEN
-//GOODRC  EXEC PGM=IEFBR14
-//DD        DD DSN=&SYSUID..BADRC,DISP=(MOD,DELETE,DELETE),
-//             DCB=(RECFM=FB,LRECL=80),UNIT=SYSALLDA,
-//             SPACE=(TRK,(1,1),RLSE)
-//       ENDIF
-"""
-	if (props.verbose) println(jcl)
 
 	def dbbConf = System.getenv("DBB_CONF")
+	if (logFile.exists())
+		logFile.delete()
+	
+	MVSExec tazRun = createTazCommand(buildFile, logicalFile, member, logFile)
+
+	// execute mvs commands in a mvs job
+	MVSJob job = new MVSJob()
+	job.start()
+
+	// compile the cobol program
+	int rc = tazRun.execute()
+	int rc = props.getFileProperty('cobol_compileMaxRC', buildFile).toInteger()
 
 	// Create jclExec
-	def tazUnitTestRunJcl = new JobExec().text(jcl).buildFile(buildFile)
-	def rc = tazUnitTestRunJcl.execute()
+	//def tazUnitTestRunJcl = new JobExec().text(jcl).buildFile(buildFile)
+	//def rc = tazUnitTestRunJcl.execute()
 
 	/**
 	 * Store results
 	 */
 
 	// Save Job Spool to logFile
-	tazUnitTestRunJcl.saveOutput(logFile, props.logEncoding)
+	
+	//tazUnitTestRunJcl.saveOutput(logFile, props.logEncoding)
 
 	//  // Extract Job BZURPT as XML
 	//  def logEncoding = "UTF-8"
@@ -163,7 +91,7 @@ int currentBuildFileNumber = 1
 
 	/**
 	 * Error Handling
-	 * RC 0
+ 	 * RC 0
 	 * RC 4 will keep the build clean, but indicate a warning
 	 * RC >=8 will make the build fail
 	 *
@@ -201,7 +129,79 @@ int currentBuildFileNumber = 1
 /**
  * Methods
  */
+/*
+ * createTazCommand - creates a MVSExec command for running the TAZ Unit Tests for the TAZ BZUCFG File (buildFile)
+ */
+def createTazCommand(String buildFile, LogicalFile logicalFile, String member, File logFile) {
+		
+    unitTestParms = props.getFileProperty('tazunittest_eqaplayParms', buildFile)
+	
+	MVSExec tazCMD = new MVSExec().pgm("EQAPLAY").parm(unitTestParms)
+	
+	def tazTaskLibConcatenation = props.getFileProperty('tazunittest_eqaplayTasklib', buildFile) ?: ""
+	if (tazTaskLibConcatenation) {
+ 		def String[] tasklibDatasets = tasklibSyslibConcatenation.split(',');
+		/* allocate TASKLIB with the first Tasklib property and remove it from the list */
+     	tazCMD.dd(new DDStatement().name("TASKLIB").dsn(tasklibDatasets.remove[0]).options("shr"))
+		/* Iterate the remaing datasets from the Tasklib property and concatenate to TASKLIB */
+		for (String tasklibDataset : tasklibDatasets )
+		   tazCMD.dd(new DDStatement().dsn(tasklibDataset).options("shr"))
+	}
+    tazCMD.dd(new DDStatement().dsn(props.cobol_testcase_loadPDS).options("shr"))
+    tazCMD.dd(new DDStatement().dsn(props.cobol_loadPDS).options("shr"))
+	
+	tazCMD.dd(new DDStatement().name("SYSOUT").options("cyl space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
+	tazCMD.dd(new DDStatement().name("BZUMSG").options("cyl space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
+	tazCMD.dd(new DDStatement().name("BZURPT").dsn("${props.tazunittest_bzureportPDS}($member)").options('shr'))
+	tazCMD.dd(new DDStatement().name("INSPLOG").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
+	tazCMD.dd(new DDStatement().name("BZUPLAY").dsn("${props.tazunittest_bzuplayPDS}(${playbackFile.getLname()})").options('shr'))
+	tazCMD.dd(new DDStatement().name("BZUCFG").dsn("IBMUSER.ZTEST.BZUCFG(TDFSIVP3)").options('shr'))
+	tazCMD.dd(new DDStatement().name("BZUCBK").dsn(props.cobol_testcase_loadPDS).options('shr'))
+	
+	tazCMD.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
+	tazCMD.dd(new DDStatement().name("EQANMDB").instreamData("BZURUN,TEST").options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
+	
+	// Add debugger parameters
+	debugParms = props.getFileProperty('tazunittest_userDebugSessionTestParm', buildFile)
+	cccOpts = "TRAP(OFF) TEST(ERROR,,,MFI:*)"
 
+	// add code coverage collection if activated
+	if (props.codeZunitCoverage && props.codeZunitCoverage.toBoolean()) {
+		// codeCoverageHost
+		if (props.codeCoverageHeadlessHost != null)
+			codeCoverageHost = props.codeCoverageHeadlessHost
+		else
+			codeCoverageHost = props.getFileProperty('tazunittest_CodeCoverageHost', buildFile)
+		// codeCoveragePort
+		if (props.codeCoverageHeadlessPort != null)
+			codeCoveragePort = props.codeCoverageHeadlessPort
+		else
+			codeCoveragePort = props.getFileProperty('tazunittest_CodeCoveragePort', buildFile)
+		// codeCoverageOptions
+		if (props.codeCoverageOptions != null)
+			codeCoverageOptions = props.codeCoverageOptions
+		else
+			codeCoverageOptions = props.getFileProperty('tazunittest_CodeCoverageOptions', buildFile)
+
+		ceeOpts = ( ( codeCoverageHost != null && codeCoveragePort != null && !props.userBuild ) ? "TEST(,,,TCPIP&${codeCoverageHost}%${codeCoveragePort}:*)  \n" : "${debugParms}  \n" ) +
+  				"ENVAR(\n"
+		if (codeCoverageOptions != null) {
+			optionsParms = splitCCParms('"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}," + codeCoverageOptions + '")');
+			optionsParms.each { optionParm ->
+				cccOpts += optionParm + "\n";
+			}
+		} else {
+			jcl += '"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}" +'")' + "\n"
+		}
+	} else if (props.debugzUnitTestcase && props.userBuild) {
+		cccOpts = debugParms
+	}
+	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(cccOpts).options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
+
+	tazCMD.copy(new CopyToHFS().ddName("SYSOUT").file(logFile).hfsEncoding(props.logEncoding))
+	tazCMD.copy(new CopyToHFS().ddName("BZUMSG").file(logFile).hfsEncoding(props.logEncoding))
+	
+	return tazCMD
 /*
  * returns the LogicalDependency of the playbackfile
  */
