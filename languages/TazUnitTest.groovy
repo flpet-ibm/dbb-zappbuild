@@ -57,7 +57,6 @@ int currentBuildFileNumber = 1
 
 	// compile the cobol program
 	int rc = tazRun.execute()
-	int rc = props.getFileProperty('cobol_compileMaxRC', buildFile).toInteger()
 
 	// Create jclExec
 	//def tazUnitTestRunJcl = new JobExec().text(jcl).buildFile(buildFile)
