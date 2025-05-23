@@ -139,12 +139,12 @@ def createTazCommand(String buildFile, LogicalFile logicalFile, String member, F
 	
 	def tazTaskLibConcatenation = props.getFileProperty('tazunittest_eqaplayTasklib', buildFile) ?: ""
 	if (tazTaskLibConcatenation) {
- 		def String[] tasklibDatasets = tazTaskLibConcatenation.split(',') as List;
+ 		def String[] tasklibDatasets = tazTaskLibConcatenation.tokenize(',');
 		/* allocate TASKLIB with the first Tasklib property and remove it from the list */
 		 println(tasklibDatasets)
 		 println(tasklibDatasets.size())
 		 println tasklibDatasets.getClass()
-		 println(tasklibDatasets.drop(0))
+		 println(tasklibDatasets.remove(0))
 		 println(tasklibDatasets)
 		 println(tasklibDatasets.size())
 		 
