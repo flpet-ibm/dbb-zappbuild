@@ -143,6 +143,7 @@ def createTazCommand(String buildFile, LogicalFile logicalFile, String member, F
 		/* allocate TASKLIB with the first Tasklib property and remove it from the list */
 		 println(tasklibDatasets)
 		 println(tasklibDatasets.size())
+		 println tasklibDatasets.getClass()
 		 println(tasklibDatasets.remove(0))
 		 println(tasklibDatasets)
 		 println(tasklibDatasets.size())
