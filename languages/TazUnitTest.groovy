@@ -49,7 +49,7 @@ int currentBuildFileNumber = 1
 	if (logFile.exists())
 		logFile.delete()
 	
-	MVSExec tazRun = createTazCommand(buildFile, logicalFile, member, logFile)
+	MVSExec tazRun = createTazCommand(buildFile, playbackFile, logicalFile, member, logFile)
 
 	// execute mvs commands in a mvs job
 	MVSJob job = new MVSJob()
@@ -131,7 +131,7 @@ int currentBuildFileNumber = 1
 /*
  * createTazCommand - creates a MVSExec command for running the TAZ Unit Tests for the TAZ BZUCFG File (buildFile)
  */
-def createTazCommand(String buildFile, LogicalFile logicalFile, String member, File logFile) {
+def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFile logicalFile, String member, File logFile) {
 		
     unitTestParms = props.getFileProperty('tazunittest_eqaplayParms', buildFile)
 	
