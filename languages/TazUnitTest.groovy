@@ -144,7 +144,7 @@ def createTazCommand(String buildFile, LogicalFile logicalFile, String member, F
 		 println(tasklibDatasets)
 		 println(tasklibDatasets.size())
 		 println tasklibDatasets.getClass()
-		 println(tasklibDatasets.remove(0))
+		 println(tasklibDatasets.drop(0))
 		 println(tasklibDatasets)
 		 println(tasklibDatasets.size())
 		 
