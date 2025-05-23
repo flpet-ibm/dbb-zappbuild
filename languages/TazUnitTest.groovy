@@ -139,16 +139,9 @@ def createTazCommand(String buildFile, LogicalFile logicalFile, String member, F
 	
 	def tazTaskLibConcatenation = props.getFileProperty('tazunittest_eqaplayTasklib', buildFile) ?: ""
 	if (tazTaskLibConcatenation) {
- 		def  tasklibDatasets = tazTaskLibConcatenation.tokenize(',');
+ 		def  tasklibDatasets = tazTaskLibConcatenation.tokenize(','); // use tokenize to get an array to enable remove()
 		/* allocate TASKLIB with the first Tasklib property and remove it from the list */
-		 println(tasklibDatasets)
-		 println(tasklibDatasets.size())
-		 println tasklibDatasets.getClass()
-		 println(tasklibDatasets.remove(0))
-		 println(tasklibDatasets)
-		 println(tasklibDatasets.size())
-		 
-     	tazCMD.dd(new DDStatement().name("TASKLIB").dsn().options("shr"))
+     	tazCMD.dd(new DDStatement().name("TASKLIB").dsn(tasklibDatasets.remove(0)).options("shr"))
 		/* Iterate the remaing datasets from the Tasklib property and concatenate to TASKLIB */
 		for (String tasklibDataset : tasklibDatasets )
 		   tazCMD.dd(new DDStatement().dsn(tasklibDataset).options("shr"))
