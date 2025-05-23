@@ -141,7 +141,7 @@ def createTazCommand(String buildFile, LogicalFile logicalFile, String member, F
 	if (tazTaskLibConcatenation) {
  		def String[] tasklibDatasets = tazTaskLibConcatenation.split(',');
 		/* allocate TASKLIB with the first Tasklib property and remove it from the list */
-     	tazCMD.dd(new DDStatement().name("TASKLIB").dsn(tasklibDatasets.remove[0]).options("shr"))
+     	tazCMD.dd(new DDStatement().name("TASKLIB").dsn(tasklibDatasets.remove(0)).options("shr"))
 		/* Iterate the remaing datasets from the Tasklib property and concatenate to TASKLIB */
 		for (String tasklibDataset : tasklibDatasets )
 		   tazCMD.dd(new DDStatement().dsn(tasklibDataset).options("shr"))
