@@ -159,12 +159,29 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 	tazCMD.dd(new DDStatement().name("BZURPT").dsn("${props.tazunittest_bzureportPDS}($member)").options('shr'))
 	tazCMD.dd(new DDStatement().name("INSPLOG").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
 	tazCMD.dd(new DDStatement().name("BZUPLAY").dsn("${props.tazunittest_bzuplayPDS}(${playbackFile.getLname()})").options('shr'))
-	tazCMD.dd(new DDStatement().name("BZUCFG").dsn("IBMUSER.ZTEST.BZUCFG(TDFSIVP3)").options('shr'))
+	tazCMD.dd(new DDStatement().name("BZUCFG").dsn("${props.tazunittest_bzucfgPDS}(${member})").options('shr'))
 	tazCMD.dd(new DDStatement().name("BZUCBK").dsn(props.cobol_testcase_loadPDS).options('shr'))
 	
 	tazCMD.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
 	tazCMD.dd(new DDStatement().name("EQANMDB").instreamData("BZURUN,TEST").options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
 	
+//	tazCMD.dd(new DDStatement().name("TASKLIB").dsn("IDZ.V16R0M0.SEQAMOD").options("shr"))
+//	tazCMD.dd(new DDStatement().dsn("CEE.SCEERUN").options("shr"))
+//	tazCMD.dd(new DDStatement().dsn("CEE.SCEERUN2").options("shr"))
+//	tazCMD.dd(new DDStatement().dsn("DEV.ZAPPBUIL.LOAD").options("shr"))
+//	tazCMD.dd(new DDStatement().dsn("DEV.ZAPPBUIL.TEST.LOAD").options("shr"))
+// 
+//	tazCMD.dd(new DDStatement().name("SYSOUT").options("cyl space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
+//	tazCMD.dd(new DDStatement().name("BZUMSG").options("cyl space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
+//	tazCMD.dd(new DDStatement().name("BZURPT").dsn("IBMUSER.ZTEST.BZURES(TEST)").options('shr'))
+//	tazCMD.dd(new DDStatement().name("INSPLOG").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
+//	tazCMD.dd(new DDStatement().name("BZUPLAY").dsn("DEV.ZAPPBUIL.BZU.BZUPLAY(CPRMAIN)").options('shr'))
+//	tazCMD.dd(new DDStatement().name("BZUCFG").dsn("IBMUSER.ZTEST.BZUCFG(TDFSIVP3)").options('shr'))
+//	tazCMD.dd(new DDStatement().name("BZUCBK").dsn("DEV.ZAPPBUIL.TEST.LOAD").options('shr'))
+//	
+//	tazCMD.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
+//	tazCMD.dd(new DDStatement().name("EQANMDB").instreamData("BZURUN,TEST").options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
+//	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData("TRAP(OFF) TEST(ERROR,,,MFI:*)").options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
 	// Add debugger parameters
 	debugParms = props.getFileProperty('tazunittest_userDebugSessionTestParm', buildFile)
 	cccOpts = "TRAP(OFF) TEST(ERROR,,,MFI:*)"
