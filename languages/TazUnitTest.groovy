@@ -56,8 +56,10 @@ int currentBuildFileNumber = 1
 	job.start()
 
 	// compile the cobol program
+	println "start execute"
 	int rc = tazRun.execute()
-
+	println "end execute"
+	
 	// Create jclExec
 	//def tazUnitTestRunJcl = new JobExec().text(jcl).buildFile(buildFile)
 	//def rc = tazUnitTestRunJcl.execute()
@@ -95,8 +97,11 @@ int currentBuildFileNumber = 1
 	 * RC >=8 will make the build fail
 	 *
 	 */
-
+    job.stop()
 	// Evaluate if running in preview build mode
+	println ("preview $props.preview")
+	println ("rc $rc")
+	println ("member $member")
 	if (!props.preview) {
 		// manage processing the RC, up to your logic. You might want to flag the build as failed.
 		if (rc <= props.tazunittest_maxPassRC.toInteger()){
