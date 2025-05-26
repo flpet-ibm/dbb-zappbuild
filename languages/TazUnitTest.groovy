@@ -140,7 +140,7 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 		
     unitTestParms = props.getFileProperty('tazunittest_eqaplayParms', buildFile)
 	
-	MVSExec tazCMD = new MVSExec().pgm("EQAPLAY").parm(unitTestParms)
+	MVSExec tazCMD = new MVSExec().file(buildFile).pgm("EQAPLAY").parm(unitTestParms)
 	
 	def tazTaskLibConcatenation = props.getFileProperty('tazunittest_eqaplayTasklib', buildFile) ?: ""
 	if (tazTaskLibConcatenation) {
@@ -200,7 +200,7 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 	} else if (props.debugzUnitTestcase && props.userBuild) {
 		cccOpts = debugParms
 	}
-	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(cccOpts).options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
+	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(cccOpts).options("tracks space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
 
 	tazCMD.copy(new CopyToHFS().ddName("SYSOUT").file(logFile).hfsEncoding(props.logEncoding))
 	tazCMD.copy(new CopyToHFS().ddName("BZUMSG").file(logFile).hfsEncoding(props.logEncoding))
