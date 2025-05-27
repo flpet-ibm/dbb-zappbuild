@@ -221,8 +221,9 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 	println("CEEOPTS $cccOpts")
 	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(cccOpts).options("tracks space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
 
-	tazCMD.copy(new CopyToHFS().ddName("SYSOUT").file(logFile).hfsEncoding(props.logEncoding))
-	tazCMD.copy(new CopyToHFS().ddName("BZUMSG").file(logFile).hfsEncoding(props.logEncoding).setAppend(true))
+	tazCMD.copy(new CopyToHFS().ddName("BZUMSG").file(logFile).hfsEncoding(props.logEncoding))
+	//tazCMD.copy(new CopyToHFS().ddName("SYSOUT").file(logFile).hfsEncoding(props.logEncoding).setAppend(true))
+	//tazCMD.copy(new CopyToHFS().ddName("INSPLOG").file(logFile).hfsEncoding(props.logEncoding).setAppend(true))
 	
 	return tazCMD
 }
