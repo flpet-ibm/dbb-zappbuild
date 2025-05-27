@@ -56,22 +56,8 @@ int currentBuildFileNumber = 1
 	job.start()
 
 	// compile the cobol program
-	println "start execute"
 	int rc = tazRun.execute()
-	println "end execute"
 	
-	// Create jclExec
-	//def tazUnitTestRunJcl = new JobExec().text(jcl).buildFile(buildFile)
-	//def rc = tazUnitTestRunJcl.execute()
-
-	/**
-	 * Store results
-	 */
-
-	// Save Job Spool to logFile
-	
-	//tazUnitTestRunJcl.saveOutput(logFile, props.logEncoding)
-
 	//  // Extract Job BZURPT as XML
 	//  def logEncoding = "UTF-8"
 	//  zUnitRunJCL.getAllDDNames().each({ ddName ->
@@ -99,9 +85,6 @@ int currentBuildFileNumber = 1
 	 */
     job.stop()
 	// Evaluate if running in preview build mode
-	println ("preview $props.preview")
-	println ("rc $rc")
-	println ("member $member")
 	if (!props.preview) {
 		// manage processing the RC, up to your logic. You might want to flag the build as failed.
 		if (rc <= props.tazunittest_maxPassRC.toInteger()){
@@ -164,24 +147,6 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 	
 	tazCMD.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
 	tazCMD.dd(new DDStatement().name("EQANMDB").instreamData("BZURUN,TEST").options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
-	
-//		tazCMD.dd(new DDStatement().name("TASKLIB").dsn("IDZ.V16R0M0.SEQAMOD").options("shr"))
-//	tazCMD.dd(new DDStatement().dsn("CEE.SCEERUN").options("shr"))
-//	tazCMD.dd(new DDStatement().dsn("CEE.SCEERUN2").options("shr"))
-//	tazCMD.dd(new DDStatement().dsn("DEV.ZAPPBUIL.LOAD").options("shr"))
-//	tazCMD.dd(new DDStatement().dsn("DEV.ZAPPBUIL.TEST.LOAD").options("shr"))
-// 
-//	tazCMD.dd(new DDStatement().name("SYSOUT").options("cyl space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
-//	tazCMD.dd(new DDStatement().name("BZUMSG").options("cyl space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
-//	tazCMD.dd(new DDStatement().name("BZURPT").dsn("IBMUSER.ZTEST.BZURES(TEST)").options('shr'))
-//	tazCMD.dd(new DDStatement().name("INSPLOG").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
-//	tazCMD.dd(new DDStatement().name("BZUPLAY").dsn("DEV.ZAPPBUIL.BZU.BZUPLAY(CPRMAIN)").options('shr'))
-//	tazCMD.dd(new DDStatement().name("BZUCFG").dsn("IBMUSER.ZTEST.BZUCFG(TDFSIVP3)").options('shr'))
-//	tazCMD.dd(new DDStatement().name("BZUCBK").dsn("DEV.ZAPPBUIL.TEST.LOAD").options('shr'))
-//	
-//	tazCMD.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
-//	tazCMD.dd(new DDStatement().name("EQANMDB").instreamData("BZURUN,TEST").options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
-//	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData("TRAP(OFF) TEST(ERROR,,,MFI:*)").options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
 
 	// Add debugger parameters
 	debugParms = props.getFileProperty('tazunittest_userDebugSessionTestParm', buildFile)
@@ -218,13 +183,12 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 	} else if (props.debugzUnitTestcase && props.userBuild) {
 		cccOpts = debugParms
 	}
-	println("CEEOPTS $cccOpts")
 	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(cccOpts).options("tracks space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
 
 	tazCMD.copy(new CopyToHFS().ddName("BZUMSG").file(logFile).hfsEncoding(props.logEncoding))
-	//tazCMD.copy(new CopyToHFS().ddName("SYSOUT").file(logFile).hfsEncoding(props.logEncoding).setAppend(true))
-	//tazCMD.copy(new CopyToHFS().ddName("INSPLOG").file(logFile).hfsEncoding(props.logEncoding).setAppend(true))
-	
+	tazCMD.copy(new CopyToHFS().ddName("SYSOUT").file(logFile).hfsEncoding(props.logEncoding).append(true))
+    tazCMD.copy(new CopyToHFS().ddName("INSPLOG").file(logFile).hfsEncoding(props.logEncoding).append(true))
+
 	return tazCMD
 }
 /*
