@@ -105,13 +105,13 @@ int currentBuildFileNumber = 1
 	if (!props.preview) {
 		// manage processing the RC, up to your logic. You might want to flag the build as failed.
 		if (rc <= props.tazunittest_maxPassRC.toInteger()){
-			println   "***  TAZ Unit Test job ${tazUnitTestRunJcl.submittedJobId} completed with $rc "
+			println   "***  TAZ Unit Test execution completed with $rc "
 			// Store Report in Workspace
 			new CopyToHFS().dataset(props.tazunittest_bzureportPDS).member(member).file(reportLogFile).copyMode(DBBConstants.CopyMode.valueOf("BINARY")).append(false).copy()
 			// printReport
 			printReport(reportLogFile)
 		} else if (rc <= props.tazunittest_maxWarnRC.toInteger()){
-			String warningMsg = "*! TAZ Unit Test returned a warning ($rc) for $buildFile"
+			String warningMsg = "*! TAZ Unit Test execution returned a warning ($rc) for $buildFile"
 			// Store Report in Workspace
 			new CopyToHFS().dataset(props.tazunittest_bzureportPDS).member(member).file(reportLogFile).copyMode(DBBConstants.CopyMode.valueOf("BINARY")).append(false).copy()
 			// print warning and report
@@ -165,7 +165,7 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 	tazCMD.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
 	tazCMD.dd(new DDStatement().name("EQANMDB").instreamData("BZURUN,TEST").options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
 	
-//	tazCMD.dd(new DDStatement().name("TASKLIB").dsn("IDZ.V16R0M0.SEQAMOD").options("shr"))
+//		tazCMD.dd(new DDStatement().name("TASKLIB").dsn("IDZ.V16R0M0.SEQAMOD").options("shr"))
 //	tazCMD.dd(new DDStatement().dsn("CEE.SCEERUN").options("shr"))
 //	tazCMD.dd(new DDStatement().dsn("CEE.SCEERUN2").options("shr"))
 //	tazCMD.dd(new DDStatement().dsn("DEV.ZAPPBUIL.LOAD").options("shr"))
@@ -182,6 +182,7 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 //	tazCMD.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
 //	tazCMD.dd(new DDStatement().name("EQANMDB").instreamData("BZURUN,TEST").options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
 //	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData("TRAP(OFF) TEST(ERROR,,,MFI:*)").options("tracks space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
+
 	// Add debugger parameters
 	debugParms = props.getFileProperty('tazunittest_userDebugSessionTestParm', buildFile)
 	cccOpts = "TRAP(OFF) TEST(ERROR,,,MFI:*)"
@@ -217,10 +218,11 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 	} else if (props.debugzUnitTestcase && props.userBuild) {
 		cccOpts = debugParms
 	}
+	println("CEEOPTS $cccOpts")
 	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(cccOpts).options("tracks space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
 
 	tazCMD.copy(new CopyToHFS().ddName("SYSOUT").file(logFile).hfsEncoding(props.logEncoding))
-	tazCMD.copy(new CopyToHFS().ddName("BZUMSG").file(logFile).hfsEncoding(props.logEncoding))
+	tazCMD.copy(new CopyToHFS().ddName("BZUMSG").file(logFile).hfsEncoding(props.logEncoding).setAppend(true))
 	
 	return tazCMD
 }
