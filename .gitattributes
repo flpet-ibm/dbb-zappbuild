@@ -4,6 +4,7 @@
 # file encodings
 *.cpy zos-working-tree-encoding=ibm-1047 git-encoding=utf-8
 *.cbl zos-working-tree-encoding=ibm-1047 git-encoding=utf-8
+*.cblc zos-working-tree-encoding=ibm-1047 git-encoding=utf-8
 *.bms zos-working-tree-encoding=ibm-1047 git-encoding=utf-8
 *.pli zos-working-tree-encoding=ibm-1047 git-encoding=utf-8
 *.mfs zos-working-tree-encoding=ibm-1047 git-encoding=utf-8
@@ -18,6 +19,7 @@
 *.mac zos-working-tree-encoding=ibm-1047 git-encoding=utf-8
 *.json zos-working-tree-encoding=utf-8 git-encoding=utf-8
 *.yaml zos-working-tree-encoding=utf-8 git-encoding=utf-8
+*.bzucfg zos-working-tree-encoding=utf-8 git-encoding=utf-8
 
 # TAZ recording file
 *.rec binary
