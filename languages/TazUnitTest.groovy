@@ -164,8 +164,9 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 
 	// Add debugger parameters
 	debugParms = props.getFileProperty('tazunittest_userDebugSessionTestParm', buildFile)
-	cccOpts = "TRAP(OFF) TEST(ERROR,,,MFI:*)"
-
+	//cccOpts = "TRAP(OFF) TEST(ERROR,,,MFI:*)"
+	ceeOpts = ""
+	
 	// add code coverage collection if activated
 	if (props.codeZunitCoverage && props.codeZunitCoverage.toBoolean()) {
 		// codeCoverageHost
@@ -189,15 +190,15 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 		if (codeCoverageOptions != null) {
 			optionsParms = splitCCParms('"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}," + codeCoverageOptions + '")');
 			optionsParms.each { optionParm ->
-				cccOpts += optionParm + "\n";
+				ceeOpts += optionParm + "\n";
 			}
 		} else {
-			cccOpts += '"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}" +'")' + "\n"
+			ceeOpts += '"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}" +'")' + "\n"
 		}
 	} else if (props.debugzUnitTestcase && props.userBuild) {
 		cccOpts = debugParms
 	}
-	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(cccOpts).options("tracks space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
+	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(ceeOpts).options("tracks space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
 
 	tazCMD.copy(new CopyToHFS().ddName("BZUMSG").file(logFile).hfsEncoding(props.logEncoding))
 	//tazCMD.copy(new CopyToHFS().ddName("SYSOUT").file(logFile).hfsEncoding(props.logEncoding).append(true))
