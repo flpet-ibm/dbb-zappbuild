@@ -43,7 +43,7 @@ int currentBuildFileNumber = 1
 
 	// get playback dependency for bzucfg file from logicalFile
 	LogicalDependency playbackFile = getPlaybackFile(logicalFile);
-
+	
 
 	def dbbConf = System.getenv("DBB_CONF")
 	if (logFile.exists())
@@ -141,7 +141,11 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 	tazCMD.dd(new DDStatement().name("BZUMSG").options("cyl space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
 	tazCMD.dd(new DDStatement().name("BZURPT").dsn("${props.tazunittest_bzureportPDS}($member)").options('shr'))
 	tazCMD.dd(new DDStatement().name("INSPLOG").options("cyl space(5,5) unit(vio) blksize(80) lrecl(80) recfm(f,b) new"))
-	tazCMD.dd(new DDStatement().name("BZUPLAY").dsn("${props.tazunittest_bzuplayPDS}(${playbackFile.getLname()})").options('shr'))
+	if (playbackFile != null) {
+    	tazCMD.dd(new DDStatement().name("BZUPLAY").dsn("${props.tazunittest_bzuplayPDS}(${playbackFile.getLname()})").options('shr'))
+	} else {
+    	tazCMD.dd(new DDStatement().name("BZUPLAY").options('DUMMY'))
+	}	
 	tazCMD.dd(new DDStatement().name("BZUCFG").dsn("${props.tazunittest_bzucfgPDS}(${member})").options('shr'))
 	tazCMD.dd(new DDStatement().name("BZUCBK").dsn(props.cobol_testcase_loadPDS).options('shr'))
 	
@@ -186,7 +190,7 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(cccOpts).options("tracks space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
 
 	tazCMD.copy(new CopyToHFS().ddName("BZUMSG").file(logFile).hfsEncoding(props.logEncoding))
-	tazCMD.copy(new CopyToHFS().ddName("SYSOUT").file(logFile).hfsEncoding(props.logEncoding).append(true))
+	//tazCMD.copy(new CopyToHFS().ddName("SYSOUT").file(logFile).hfsEncoding(props.logEncoding).append(true))
     tazCMD.copy(new CopyToHFS().ddName("INSPLOG").file(logFile).hfsEncoding(props.logEncoding).append(true))
 
 	return tazCMD
