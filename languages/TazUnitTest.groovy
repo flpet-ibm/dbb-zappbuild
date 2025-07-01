@@ -84,6 +84,7 @@ int currentBuildFileNumber = 1
 	 *
 	 */
     job.stop()
+	println("ending taz job")
 	// Evaluate if running in preview build mode
 	if (!props.preview) {
 		// manage processing the RC, up to your logic. You might want to flag the build as failed.
@@ -110,6 +111,7 @@ int currentBuildFileNumber = 1
 	} else { // skip evaluating Unit tests result
 		if (props.verbose) println "*** Evaluation of TAZ Unit Test result skipped, because running in preview mode."
 	}
+	println("ended taz file")
 
 }
 
