@@ -197,6 +197,7 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 	} else if (props.debugzUnitTestcase && props.userBuild) {
 		ceeOpts = debugParms
 	}
+	println "TAZ ceeopts <${ceeOpts}>" 
 	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(ceeOpts).options("tracks space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
 
 	tazCMD.copy(new CopyToHFS().ddName("BZUMSG").file(logFile).hfsEncoding(props.logEncoding))
