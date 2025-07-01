@@ -164,8 +164,7 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 
 	// Add debugger parameters
 	debugParms = props.getFileProperty('tazunittest_userDebugSessionTestParm', buildFile)
-	//cccOpts = "TRAP(OFF) TEST(ERROR,,,MFI:*)"
-	ceeOpts = ""
+	ceeOpts = "TRAP(OFF) TEST(ERROR,,,MFI:*) "
 	
 	// add code coverage collection if activated
 	if (props.codeZunitCoverage && props.codeZunitCoverage.toBoolean()) {
@@ -196,7 +195,7 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 			ceeOpts += '"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}" +'")' + "\n"
 		}
 	} else if (props.debugzUnitTestcase && props.userBuild) {
-		cccOpts = debugParms
+		ceeOpts = debugParms
 	}
 	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(ceeOpts).options("tracks space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
 
