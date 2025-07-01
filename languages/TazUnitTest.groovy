@@ -38,33 +38,24 @@ int currentBuildFileNumber = 1
 	// copy build file and dependency files to data sets
 	buildUtils.copySourceFiles(buildFile, props.tazunittest_bzucfgPDS, 'tazunittest_dependenciesDatasetMapping', null, 'tazunittest_dependenciesCopyMode', dependencyResolver)
 
-	println("tazstep #1")
 	// get logical file
 	LogicalFile logicalFile = buildUtils.createLogicalFile(dependencyResolver, buildFile)
 
-	println("tazstep #2")
 	// get playback dependency for bzucfg file from logicalFile
 	LogicalDependency playbackFile = getPlaybackFile(logicalFile);
 	
-
-	println("tazstep #3")
 	def dbbConf = System.getenv("DBB_CONF")
 	if (logFile.exists())
 		logFile.delete()
 	
-	println("tazstep #4")
 	MVSExec tazRun = createTazCommand(buildFile, playbackFile, logicalFile, member, logFile)
-	println("tazstep #5")
 	
 	// execute mvs commands in a mvs job
 	MVSJob job = new MVSJob()
-	println("tazstep #6")
 	job.start()
-	println("tazstep #7")
 	
 	// compile the cobol program
 	int rc = tazRun.execute()
-	println("tazstep #8")
 	
 	//  // Extract Job BZURPT as XML
 	//  def logEncoding = "UTF-8"
@@ -92,7 +83,6 @@ int currentBuildFileNumber = 1
 	 *
 	 */
     job.stop()
-	println("ending taz job")
 	// Evaluate if running in preview build mode
 	if (!props.preview) {
 		// manage processing the RC, up to your logic. You might want to flag the build as failed.
@@ -119,7 +109,6 @@ int currentBuildFileNumber = 1
 	} else { // skip evaluating Unit tests result
 		if (props.verbose) println "*** Evaluation of TAZ Unit Test result skipped, because running in preview mode."
 	}
-	println("ended taz file")
 
 }
 
@@ -197,7 +186,6 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 	} else if (props.debugzUnitTestcase && props.userBuild) {
 		ceeOpts = debugParms
 	}
-	println "TAZ ceeopts <${ceeOpts}>" 
 	tazCMD.dd(new DDStatement().name("CEEOPTS").instreamData(ceeOpts).options("tracks space(5,5) unit(vio) lrecl(80) recfm(f,b) new"))
 
 	tazCMD.copy(new CopyToHFS().ddName("BZUMSG").file(logFile).hfsEncoding(props.logEncoding))
