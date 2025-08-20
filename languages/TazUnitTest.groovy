@@ -30,6 +30,8 @@ int currentBuildFileNumber = 1
 
 	File logFile = new File("${props.buildOutDir}/${member}.tazunittest.jcl.log")
 	File reportLogFile = new File("${props.buildOutDir}/${member}.tazunittest.report.log")
+	//File reportJunitFile = new File("${props.buildOutDir}/${member}.tazunittest.junit.xml")
+	//String xslFile = props.tazunittest_tazxlsconv
 
 
 	String dependencySearch = props.getFileProperty('tazunittest_dependencySearch', buildFile)
@@ -173,16 +175,32 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 		else
 			codeCoverageOptions = props.getFileProperty('tazunittest_CodeCoverageOptions', buildFile)
 
+    	String sysload = getLoadModule(logicalFile);
+		println "sysload  ${sysload}" 
+		
+	    String sysprog = getProgram(logicalFile);
+		println "sysprog  ${sysprog}"
+		
 		ceeOpts = ( ( codeCoverageHost != null && codeCoveragePort != null && !props.userBuild ) ? "TEST(,,,TCPIP&${codeCoverageHost}%${codeCoveragePort}:*)  \n" : "${debugParms}  \n" ) +
   				"ENVAR(\n"
+				  
+   		// define the EQA_STARTUP_KEY
+    	String key = "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}"
+		if (sysload != null) {
+			key = "EQA_STARTUP_KEY=CC,${member},t=${member},z=${sysload}"
+			if (sysload != sysprog) {
+			   key += ",f='- .*,+ ${sysload} ${sysprog} .*"
+			   
 		if (codeCoverageOptions != null) {
-			optionsParms = splitCCParms('"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}," + codeCoverageOptions + '")');
+			optionsParms = splitCCParms('"' + key + "," + codeCoverageOptions + '")');
 			optionsParms.each { optionParm ->
 				ceeOpts += optionParm + "\n";
 			}
 		} else {
-			ceeOpts += '"' + "EQA_STARTUP_KEY=CC,${member},t=${member},i=${member}" +'")' + "\n"
+			ceeOpts += '"' + key +'")' + "\n"
 		}
+		
+		
 	} else if (props.debugzUnitTestcase && props.userBuild) {
 		ceeOpts = debugParms
 	}
@@ -203,6 +221,28 @@ def getPlaybackFile(LogicalFile logicalFile) {
 		it.getLibrary() == "SYSPLAY"
 	}
 	return playbackDependency
+}
+
+/*
+ * returns the SYSLOAD lname
+ */
+def getLoadModule(LogicalFile logicalFile) {
+	// find playback file dependency
+	LogicalDependency sysloadDependency = logicalFile.getLogicalDependencies().find {
+		it.getLibrary() == "SYSLOAD"
+	}
+	return ((sysloadDependency==null)?null:sysloadDependency.getLname())
+}
+
+/*
+ * returns the SYSPROG lname
+ */
+def getProgram(LogicalFile logicalFile) {
+	// find playback file dependency
+	LogicalDependency sysprogDependency = logicalFile.getLogicalDependencies().find {
+		it.getLibrary() == "SYSPROG"
+	}
+	return sysprogDependency.getLname()
 }
 
 /**
