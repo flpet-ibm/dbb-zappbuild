@@ -190,6 +190,8 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 			key = "EQA_STARTUP_KEY=CC,${member},t=${member},z=${sysload}"
 			if (sysload != sysprog) {
 			   key += ",f='- .*,+ ${sysload} ${sysprog} .*"
+			}
+		}
 			   
 		if (codeCoverageOptions != null) {
 			optionsParms = splitCCParms('"' + key + "," + codeCoverageOptions + '")');
