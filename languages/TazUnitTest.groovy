@@ -202,7 +202,10 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 			codeCoverageOptions = props.getFileProperty('tazunittest_CodeCoverageOptions', buildFile)
 
     	String sysload = getLoadModule(logicalFile);
+		println "sysload  ${sysload}" 
+		
 	    String sysprog = getProgram(logicalFile);
+		println "sysprog  ${sysprog}"
 		
 		ceeOpts = ( ( codeCoverageHost != null && codeCoveragePort != null && !props.userBuild ) ? "TEST(,,,TCPIP&${codeCoverageHost}%${codeCoveragePort}:*)  \n" : "${debugParms}  \n" ) +
   				"ENVAR(\n"
