@@ -270,27 +270,6 @@ def getProgram(LogicalFile logicalFile) {
 	return ((sysprogDependency==null)?null:sysprogDependency.getLname())
 }
 
-/*
- * returns the SYSLOAD lname
- */
-def getLoadModule(LogicalFile logicalFile) {
-	// find playback file dependency
-	LogicalDependency sysloadDependency = logicalFile.getLogicalDependencies().find {
-		it.getLibrary() == "SYSLOAD"
-	}
-	return ((sysloadDependency==null)?null:sysloadDependency.getLname())
-}
-
-/*
- * returns the SYSPROG lname
- */
-def getProgram(LogicalFile logicalFile) {
-	// find playback file dependency
-	LogicalDependency sysprogDependency = logicalFile.getLogicalDependencies().find {
-		it.getLibrary() == "SYSPROG"
-	}
-	return sysprogDependency.getLname()
-}
 
 /**
  *  Parsing the result file and prints summary of the result
