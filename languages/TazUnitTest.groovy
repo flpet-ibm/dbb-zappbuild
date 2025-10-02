@@ -248,7 +248,7 @@ def getPlaybackFile(LogicalFile logicalFile) {
 	LogicalDependency playbackDependency = logicalFile.getLogicalDependencies().find {
 		it.getLibrary() == "SYSPLAY"
 	}
-	return ((playbackDependency==null)?null:playbackDependency.getLname())
+	return ((playbackDependency==null)?null:playbackDependency)
 }
 
 /*
