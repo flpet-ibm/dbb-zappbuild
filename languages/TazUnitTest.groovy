@@ -30,8 +30,8 @@ int currentBuildFileNumber = 1
 
 	File logFile = new File("${props.buildOutDir}/${member}.tazunittest.jcl.log")
 	File reportLogFile = new File("${props.buildOutDir}/${member}.tazunittest.report.log")
-	//File reportJunitFile = new File("${props.buildOutDir}/${member}.tazunittest.junit.xml")
-	//String xslFile = props.tazunittest_tazxlsconv
+	File reportJunitFile = new File("${props.buildOutDir}/${member}.tazunittest.junit.xml")
+	String xslFile = props.tazunittest_tazxlsconv
 
 
 	String dependencySearch = props.getFileProperty('tazunittest_dependencySearch', buildFile)
@@ -92,6 +92,32 @@ int currentBuildFileNumber = 1
 			println   "***  TAZ Unit Test execution completed with $rc "
 			// Store Report in Workspace
 			new CopyToHFS().dataset(props.tazunittest_bzureportPDS).member(member).file(reportLogFile).copyMode(DBBConstants.CopyMode.valueOf("BINARY")).append(false).copy()
+			if (props.tazunittest_convertTazResultsToJunit && props.tazunittest_convertTazResultsToJunit.toBoolean()) {
+				if (props.tazunittest_tazxlsconv) {
+					// Convert the report to Junit and store in workspace
+					def exec = new UnixExec()
+							.command("Xalan")
+							.options([
+								"-o",
+								reportJunitFile.toString(),
+								reportLogFile.toString(),
+								xslFile
+							])
+							.execute()
+
+					if (exec != 0) {
+						String convWarningMsg = "*** Warning: JUnit Conversion failed with return code RC=${exec} for $buildFile"
+						println  convWarningMsg
+						buildUtils.updateBuildResult(warningMsg:convWarningMsg)
+					} else {
+						println "***  JUnit Conversion executed successfully with return code RC=${exec} for $buildFile"
+					}
+				} else {
+					String msg = "***  Warning: JUnit Conversion skipped - XSL file path is missing in (tazunittest_tazxlsconv)"
+					println msg
+					buildUtils.updateBuildResult(warningMsg: msg)
+				}
+			}
 			// printReport
 			printReport(reportLogFile)
 		} else if (rc <= props.tazunittest_maxWarnRC.toInteger()){
@@ -176,10 +202,7 @@ def createTazCommand(String buildFile, LogicalDependency playbackFile, LogicalFi
 			codeCoverageOptions = props.getFileProperty('tazunittest_CodeCoverageOptions', buildFile)
 
     	String sysload = getLoadModule(logicalFile);
-		println "sysload  ${sysload}" 
-		
 	    String sysprog = getProgram(logicalFile);
-		println "sysprog  ${sysprog}"
 		
 		ceeOpts = ( ( codeCoverageHost != null && codeCoveragePort != null && !props.userBuild ) ? "TEST(,,,TCPIP&${codeCoverageHost}%${codeCoveragePort}:*)  \n" : "${debugParms}  \n" ) +
   				"ENVAR(\n"
@@ -222,7 +245,29 @@ def getPlaybackFile(LogicalFile logicalFile) {
 	LogicalDependency playbackDependency = logicalFile.getLogicalDependencies().find {
 		it.getLibrary() == "SYSPLAY"
 	}
-	return playbackDependency
+	return ((playbackDependency==null)?null:playbackDependency.getLname())
+}
+
+/*
+ * returns the SYSLOAD lname
+ */
+def getLoadModule(LogicalFile logicalFile) {
+	// find load module dependency
+	LogicalDependency sysloadDependency = logicalFile.getLogicalDependencies().find {
+		it.getLibrary() == "SYSLOAD"
+	}
+	return ((sysloadDependency==null)?null:sysloadDependency.getLname())
+}
+
+/*
+ * returns the SYSPROG lname
+ */
+def getProgram(LogicalFile logicalFile) {
+	// find program under test dependency
+	LogicalDependency sysprogDependency = logicalFile.getLogicalDependencies().find {
+		it.getLibrary() == "SYSPROG"
+	}
+	return ((sysprogDependency==null)?null:sysprogDependency.getLname())
 }
 
 /*
